@@ -26,7 +26,10 @@ class Vimball:
         self.files = self.__find_files()
 
     def __del__(self):
-        self.vimball.close()
+        try:
+            self.vimball.close()
+        except AttributeError:
+            return
 
     def isVimball(self):
         self.vimball.seek(0)
@@ -48,12 +51,16 @@ class Vimball:
     def __open_archive(self):
         basename, extension = os.path.splitext(self.filepath)
 
-        if extension == ".gz":
-            f = gzip.open(self.filepath)
-        elif extension == ".bz2":
-            f = bz2.BZ2File(self.filepath)
-        else:
-            f = open(self.filepath)
+        try:
+            if extension == ".gz":
+                f = gzip.open(self.filepath)
+            elif extension == ".bz2":
+                f = bz2.BZ2File(self.filepath)
+            else:
+                f = open(self.filepath)
+        except IOError:
+            print("That file doesn't exist!")
+            sys.exit(errno.ENOENT)
 
         return f
 
