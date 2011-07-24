@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import os, sys, re, errno, gzip, bz2 
+import os, sys, re, errno, gzip, bz2
 from argparse import ArgumentParser
 from tempfile import mkdtemp
-       
+
 def mkdir_p(path):
     try:
         os.makedirs(path)
@@ -18,7 +18,7 @@ class Vimball:
         self.extractdir = extractdir
 
         self.vimball = self.__open_archive()
-        
+
         if not self.isVimball():
             raise TypeError
 
@@ -47,7 +47,7 @@ class Vimball:
             return os.path.join(tempdir.split('/')[-1], self.basename)
         else:
             return self.basename
-        
+
     def __open_archive(self):
         basename, extension = os.path.splitext(self.filepath)
 
@@ -129,7 +129,7 @@ if __name__ == "__main__":
         metavar='DIR', dest='extractdir')
 
     args = parser.parse_args()
-   
+
     vimball = Vimball(args.archive[0], args.extractdir)
 
     if args.extract:
