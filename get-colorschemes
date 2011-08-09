@@ -5,7 +5,7 @@ shopt -s extglob
 DATE=$(date +%Y%m%d)
 LANG=C
 DLOADDIR="${1:-${PWD}/colorschemes-${DATE}}"
-DOWNLOAD=false
+DOWNLOAD=true
 SCRIPTLIST="http://www.vim.org/scripts/script_search_results.php?&script_type=color%20scheme&order_by=script_name&direction=ascending&show_me=2000&result_ptr=0"
 #SCRIPTLIST="http://www.vim.org/scripts/script_search_results.php?&script_type=color%20scheme&order_by=downloads&direction=ascending&show_me=2000&result_ptr=0"
 #SCRIPTLIST="http://www.vim.org/scripts/script_search_results.php?&script_type=color%20scheme&order_by=creation_date&direction=ascending&show_me=2000&result_ptr=0"
@@ -84,58 +84,42 @@ for i in $(wget -q -O - "$SCRIPTLIST"| grep 'script.php?script_id' | sed -e 's,^
 	fi
 done
 
-shopt -s nullglob
-pushd ${DLOADDIR} &>/dev/null
+if $DOWNLOAD ; then
+	shopt -s nullglob
+	pushd ${DLOADDIR} &>/dev/null
 
-# do unpack
-#for i in *.tar.gz *.tgz; do
-#   echo ">>> Unpacking ${i}"
-#   tar zxf "${i}"
-#   rm -f "${i}" &> /dev/null
-#done
+	# do unpack
+	for i in *.tar.gz *.tgz *.tar.bz2 *.tbz2 *.zip *.ZIP ; do
+		echo ">>> Unpacking ${i}"
+		aunpack "${i}"
+		rm -f "${i}" &> /dev/null
+	done
 
-#for i in *.tar.bz2 *.tbz2; do
-#   echo ">>> Unpacking ${i}"
-#   tar jxf "${i}"
-#   rm -f "${i}" &> /dev/null
-#done
+	for i in *.vba; do
+		echo ">>> Unpacking ${i}"
+		vimball -x "${i}"
+		rm -f "${i}" &> /dev/null
+	done
 
-#for i in *.zip *.ZIP; do
-#   echo ">>> Unpacking ${i}"
-#   unzip "${i}"
-#   rm -f "${i}" &> /dev/null
-#done
+	for i in *.txt; do
+		echo ">>> Fixing ${i}"
+		mv "${i}" "${i/txt/vim}"
+	done
 
-for i in *.tar.gz *.tgz *.tar.bz2 *.tbz2 *.zip *.ZIP ; do
-	echo ">>> Unpacking ${i}"
-	aunpack "${i}"
-	rm -f "${i}" &> /dev/null
-done
+	# Move color schemes in nested directories to the main directory
+	#find . -mindepth 2 -name *.vim -exec mv '{}' ./ \; &> /dev/null
 
-for i in *.vba; do
-   echo ">>> Unpacking ${i}"
-   vimball -x "${i}"
-   rm -f "${i}" &> /dev/null
-done
+	# Remove none color scheme files
+	#find . -mindepth 1 ! -name *.vim -exec rm -rf '{}' \; &> /dev/null
 
-for i in *.txt; do
-   echo ">>> Fixing ${i}"
-   mv "${i}" "${i/txt/vim}"
-done
+	# Set correct file modes
+	chmod 644 *.vim
 
-# Move color schemes in nested directories to the main directory
-#find . -mindepth 2 -name *.vim -exec mv '{}' ./ \; &> /dev/null
+	# "Fixing line endings"
+	find . -name *.vim -exec sed -i -e 's,\r,\n,g' '{}' \; &> /dev/null
 
-# Remove none color scheme files
-#find . -mindepth 1 ! -name *.vim -exec rm -rf '{}' \; &> /dev/null
+	# Check for dupes
+	fdupes .
 
-# Set correct file modes
-#chmod 644 *.vim
-
-# "Fixing line endings"
-#find . -name *.vim -exec sed -i -e 's,\r,\n,g' '{}' \; &> /dev/null
-
-# Check for dupes
-#fdupes .
-
-popd &>/dev/null
+	popd &>/dev/null
+fi
